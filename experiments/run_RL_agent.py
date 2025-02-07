@@ -37,8 +37,12 @@ def set_agent_parameters(cfg):
         from agents.algorithm.g2p2c import G2P2C
         agent = G2P2C(args=cfg.agent, env_args=cfg.env, logger=logger, load_model=False, actor_path='', critic_path='')
 
+    elif cfg.agent.agent == 'custom':
+        from agents.algorithm.custom import Custom
+        agent = Custom(args=cfg.agent, env_args=cfg.env, logger=logger, load_model=False, actor_path='', critic_path='')
+
     else:
-        print('Please select an agent for the experiment. Hint: a2c, sac, ppo, g2p2c')
+        print('Please select an agent for the experiment. Hint: a2c, sac, ppo, g2p2c, custom')
     return agent
 
 
@@ -63,6 +67,7 @@ def main(cfg: DictConfig) -> None:
     np.random.seed(cfg.experiment.seed)
 
     if cfg.mlflow.track:
+        print("Running with mlflow")
         mlflow.set_tracking_uri(cfg.mlflow.tracking_uri)
         mlflow.set_experiment(cfg.experiment.name)
         experiment = mlflow.get_experiment_by_name(cfg.experiment.name)
@@ -72,6 +77,7 @@ def main(cfg: DictConfig) -> None:
             mlflow.log_params(cfg)
             agent.run()
     else:
+        print("Running without mlflow")
         agent.run()
 
 

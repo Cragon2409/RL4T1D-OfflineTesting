@@ -97,6 +97,7 @@ class G2P2C:
 
     def save_log(self, log_name, file_name):
         with open(self.args.experiment_dir + file_name + '.csv', 'a+') as f:
+            # print("Saved csv file to",file_name,"with",log_name)
             csvWriter = csv.writer(f, delimiter=',')
             csvWriter.writerows(log_name)
             f.close()

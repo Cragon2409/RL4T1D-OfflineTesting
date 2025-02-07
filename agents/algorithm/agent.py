@@ -128,11 +128,28 @@ class Agent:
             res.rename(columns={'sev_hypo':'S_hypo', 'sev_hyper':'S_hyper'}, inplace=True)
             summary_stats.append(res)
             metric=['mean', 'std', 'min', 'max']
-            print(calc_stats(res, metric=metric, sim_len=288))
+            stats = calc_stats(res, metric=metric, sim_len=288)
+            print(stats)
+
+            before_text = f"""
+# Summary of Experiment {self.args.experiment_folder}
+## Experiment Summary Table
+            """
+            headers = "\n| Metric | Mean | Std | Min | Max |\n|--------|------|-----|-----|-----|\n"
+            rows = "\n".join(
+                [f"| {key} | {value['mean']} | {value['std']} | {value['min']} | {value['max']} |" 
+                for key, value in stats.items() if isinstance(value, pd.Series)]
+            )
+            
+            with open("../results/" + self.args.experiment_folder + "/summary.md", 'w') as fp:
+                fp.write(before_text + headers + rows + "\n")
+                fp.close()
+
+
 
             print('\nAlgorithm Training/Validation Completed Successfully.')
             print('---------------------------------------------------------')
-            exit()
+            # exit() #ALTERED
 
     def decay_lr(self):
         return
