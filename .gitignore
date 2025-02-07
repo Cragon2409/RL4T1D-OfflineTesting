@@ -7,3 +7,5 @@ results/
 experiments/nci/help.txt
 experiments/
 mlruns/
+data/adolescent
+data/adult
