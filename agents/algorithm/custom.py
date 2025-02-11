@@ -4,8 +4,15 @@ import torch.nn as nn
 from agents.algorithm.agent import Agent
 from agents.models.actor_critic import ActorCritic
 
+from decouple import config
+import sys
 
-# CURRENTLY JUST A COPY OF PPO FILE; just here as a placeholder to set up custom agent registration
+MAIN_PATH = config('MAIN_PATH')
+sys.path.insert(1, MAIN_PATH)
+
+from data.import_data import import_all_data, import_from_obj
+
+# CURRENTLY JUST A COPY OF PPO FILE (+ a few things); just here as a placeholder to set up custom agent registration
 class Custom(Agent):
     def __init__(self, args, env_args, logger, load_model, actor_path, critic_path):
         super(Custom, self).__init__(args, env_args=env_args, logger=logger, type="OnPolicy")
@@ -33,6 +40,13 @@ class Custom(Agent):
         self.entropy_coef = args.entropy_coef
         self.eps_clip = args.eps_clip
         self.target_kl = args.target_kl
+
+        # import custom data
+        try:
+            self.data_obj = import_from_obj("../data/object_save/data_dictionary.pkl")
+            print("Succesfully imported data object.")
+        except:
+            print("No object save found at data/object_save/data_dictionary.pkl")
 
     def train_pi(self):
         print('Running Policy Update...')
