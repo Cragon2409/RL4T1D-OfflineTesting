@@ -5,7 +5,10 @@ __pycache__/
 results/
 .env
 experiments/nci/help.txt
-experiments/
+experiments/.ipynb_checkpoints
+experiments/mlartifacts
+experiments/mlruns
+experiments/results
 mlruns/
 data/adolescent
 data/adult

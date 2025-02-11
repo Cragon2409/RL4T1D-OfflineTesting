@@ -116,7 +116,7 @@ def open_arg_file(file_dest):
     return OmegaConf.create(args_dict)
     
 if __name__ == "__main__":
-    SAVE_TO_PICKLE = False
+    SAVE_TO_PICKLE = True
     READ_FROM_PICKLE = False
 
     if READ_FROM_PICKLE:
