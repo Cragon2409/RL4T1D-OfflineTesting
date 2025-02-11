@@ -80,7 +80,7 @@ def import_all_data(
 
     return data_dict
 
-CSV_HEADERS = ["cgm", "meal", "ins", "t"]
+CSV_HEADERS = ["cgm", "carbs", "ins", "t"]
 def import_from_csv(file_dest, headers=CSV_HEADERS): #imports data from a csv file
     df = pd.read_csv(file_dest, header=None, names=headers)
     data_dict = {col: df[col].to_numpy(dtype=float) for col in headers}
@@ -91,6 +91,8 @@ def import_from_big_csv(file_dest, columns=["cgm","meal","rl_ins","t"]):
     data_dict = {col: df[col].to_numpy(dtype=float) for col in columns}
 
     data_dict["ins"] = data_dict["rl_ins"]
+    data_dict["carbs"] = data_dict["meal"]
+    del data_dict["meal"]
     del data_dict["rl_ins"]
 
     return data_dict
