@@ -41,6 +41,7 @@ def import_all_data(
         for model in model_range:
             model_folder = dest + '/' + age + '/' + model + '/'
             print(model_folder)
+
             if model in csv_type_list:
                 data_dict[age][model] = []
 
@@ -52,6 +53,8 @@ def import_all_data(
                         print("\t>>Excluded",excl_file,"from",model_folder)
 
                 for file in available_files:
+                    run_individual = age.capitalize() + file.split('_')[2]
+                    expert_type = "clinical"
                     file_dest = model_folder + file
                     print('\t' + file_dest)
                     data_dict[age][model].append(import_from_csv(file_dest))
@@ -66,14 +69,24 @@ def import_all_data(
                     folder_dest = model_folder + folder
                     print('\t' + folder_dest)
                     args = open_arg_file(folder_dest + '/args.json')
+                    run_seed = folder[-1]
+                    run_individual = age.capitalize() + folder[-3]
+
+
                     #taking validation and testing together in one list
                     for trial_folder in ['/testing/data/', '/training/data/']:
                         trial_folder_dest = folder_dest + trial_folder
                         available_files = os.listdir(trial_folder_dest)
                         for file in available_files:
+                            worker_number = int(file.split('_')[2][:-4])
+                            if trial_folder == "/testing/data/": expert_type = "testing"
+                            elif 6000 > worker_number >= 5000: expert_type = "training"
+                            elif worker_number >= 6000: expert_type = "eval"
                             if not EXCLUDE_IN_FILES in file:
                                 file_dest = trial_folder_dest + file
-                                data_dict[age][model].append(import_from_big_csv(file_dest))
+                                new_data_dicts = import_from_big_csv(file_dest)
+                                for new_data_dict in new_data_dicts:
+                                    data_dict[age][model].append(new_data_dict)
 
 
                 # data_dict[age][model] = np.array(data_dict)
@@ -87,15 +100,36 @@ def import_from_csv(file_dest, headers=CSV_HEADERS): #imports data from a csv fi
     return data_dict
 
 def import_from_big_csv(file_dest, columns=["cgm","meal","rl_ins","t"]):
-    df = pd.read_csv(file_dest, usecols=columns)
-    data_dict = {col: df[col].to_numpy(dtype=float) for col in columns}
+    df = pd.read_csv(file_dest, usecols=columns + ["epi"])
 
-    data_dict["ins"] = data_dict["rl_ins"]
-    data_dict["carbs"] = data_dict["meal"]
-    del data_dict["meal"]
-    del data_dict["rl_ins"]
+    end_episodes = max([int(float(i)) for i in df["epi"]])
+    start_episode = min([int(float(i)) for i in df["epi"]])
+    n_episodes = end_episodes - start_episode + 1
+    data_dicts = [dict() for n in range(n_episodes)]
 
-    return data_dict
+    copy_dict = {col: df[col].to_numpy(dtype=float) for col in columns + ["epi"]}
+
+    copy_dict["ins"] = copy_dict["rl_ins"]
+    copy_dict["carbs"] = copy_dict["meal"]
+    del copy_dict["meal"]
+    del copy_dict["rl_ins"]
+
+     #obtain index boundaries for each episode
+    episode_indices = [0]
+    current_episode = start_episode
+    for c,row_episode in enumerate(copy_dict["epi"]):
+        if int(float(row_episode)) != current_episode:
+            current_episode += 1
+            episode_indices.append(c)
+    episode_indices.append(None)
+
+    #assign rows for each episode
+    for n in range(n_episodes):
+        current_slice = slice(episode_indices[n], episode_indices[n+1])
+        for k in copy_dict: data_dicts[n][k] = copy_dict[k][current_slice]
+
+
+    return data_dicts
 
 
 
@@ -116,6 +150,8 @@ def open_arg_file(file_dest):
     return OmegaConf.create(args_dict)
     
 if __name__ == "__main__":
+
+
     SAVE_TO_PICKLE = True
     READ_FROM_PICKLE = False
 

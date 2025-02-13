@@ -147,6 +147,7 @@ def read_file(experiment_name, algorithm, n_trials, base_num=5000):
         
         trials_dict[base_num+i] = trial_list
     return trials_dict
+
             
 
 
